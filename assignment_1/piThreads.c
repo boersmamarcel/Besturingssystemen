@@ -41,7 +41,7 @@ void *piPrinter(void *param)
 	bool print_value = true;
 	
 	while(print_value){
-		printf("The current value of pi :  %Lf\n", 4*pi);
+		printf("The current value of pi :  %1.65Lf\n", 4*pi);
 		sleep(1);
 	}
 	/*Sleep for some milli seconds*/
