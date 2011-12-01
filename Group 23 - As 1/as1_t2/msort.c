@@ -22,14 +22,16 @@ void debug_tasks(task_t** tasks, int count) {
 
 void msort(task_t** tasks, int count)
 {
+  printf("%p", tasks);
 
   if (count <= 1) {
-    // Nothing happens here, because ..
+    // Nothing happens here, because when there is only one or if there are zero elements in the array the array is already sorted.
   } else {
+    // We need to calculate the middle of the tasks because we want to split the tasks into two halves		
     int mid = floor(count / 2);
     
     task_t** left =  slice_tasks(tasks, 0, mid);
-    msort(left, mid-0);    
+    msort(left, mid-0);
 
     task_t** right = slice_tasks(tasks, mid, count);
     msort(right, count-mid);
@@ -62,7 +64,7 @@ void merge(task_t** tasks, int left, int mid, int right) {
   int resultCounter = 0;
 
   task_t** result;
-  result = (taskd_t**) malloc(sizeof(task_t*) * (right-left));
+  result = (task_t**) malloc(sizeof(task_t*) * (right-left));
   
   for(resultCounter = 0; resultCounter < (right-left); resultCounter++){
     if (leftCounter < mid && rightCounter < right)
