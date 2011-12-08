@@ -1,25 +1,28 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "as1_t2.h"
+#include "as1_t3.h"
 #include "math.h"
 
-void debug_tasks(task_t** tasks, int count);
 void merge(task_t** tasks, int left, int mid, int right);
 void msort(task_t** tasks, int count);
 task_t** slice_tasks(task_t** tasks, int begin, int end);
+void *threaded_msort(void *param);
 
-void debug_tasks(task_t** tasks, int count) {
-  printf("tasks: [");
-  int i;
-  for(i = 0; i<count; i++) {
-    printf("%lu:", tasks[i]->id);
-    if (i+1 != count) {
-      printf(",");
-    }
-  }
-  printf("]\n");
+int maxthreads = 16;
+int threads    = 0;
+
+typedef struct {
+  task_t** tasks;
+  int count;
+} msort_args_t;
+
+void msort(task_t** tasks, int count)
+{
+  msort_args_t args;
+  args.tasks = tasks;
+  args.count = count;
+  threaded_msort(&args);
 }
-
 
 /**
  * This function sorts the tasks array by using the merge sort algorithm
@@ -28,33 +31,52 @@ void debug_tasks(task_t** tasks, int count) {
  * @ensure  for each int i in [0..count-1] 
  *            tasks[i]->id < tasks[i+1]->id
  */
-void msort(task_t** tasks, int count)
+void *threaded_msort(void *param)
 {
-  //printf("%p", tasks);
+  msort_args_t args = *(msort_args_t *)param;
+  task_t** tasks = args.tasks;
+  int count = args.count;
+  int threaded = 0;
 
   if (count <= 1) {
     // Nothing happens here, because when there is only one or if there are zero elements in the array the array is already sorted.
   } else {
     // We need to calculate the middle of the tasks because we want to split the tasks into two halves		
     int mid = floor(count / 2);
-    
-    task_t** left =  slice_tasks(tasks, 0, mid);
-    msort(left, mid-0);
+    msort_args_t leftargs, rightargs;
+    pthread_t leftthread, rightthread;
 
-    task_t** right = slice_tasks(tasks, mid, count);
-    msort(right, count-mid);
+    leftargs.tasks = slice_tasks(tasks, 0, mid);
+    leftargs.count = mid;
+
+    if(threads < maxthreads) {
+      pthread_create(&leftthread, NULL, threaded_msort, (void *)&leftargs);
+      threads++;
+      threaded = 1;
+    } else {
+      threaded_msort(&leftargs);
+    }
+
+    rightargs.tasks = slice_tasks(tasks, mid, count);
+    rightargs.count = count - mid;
+    threaded_msort(&rightargs);
+
+    if(threaded == 1) {
+      pthread_join(leftthread, NULL);
+      threads--;
+    }
 
     int i = 0;
     for(;i < count;i++) {
       if(i < mid) {
-        tasks[i] = left[i];
+        tasks[i] = leftargs.tasks[i];
       } else {
-        tasks[i] = right[i-mid];
+        tasks[i] = rightargs.tasks[i-mid];
       }
     }
 
-    free(left);
-    free(right);
+    free(leftargs.tasks);
+    free(rightargs.tasks);
 
     merge(tasks, 0, mid, count);
 

@@ -1,6 +1,6 @@
 /* This file is prepared for the course Operating Systems/Besturingssystemen, University of Twente, 2011. Students: you may modify this file during development of your solution (e.g. for debugging purposes), BUT you must eventually hand in a WORKING solution with this file UNMODIFIED. */
 
-#include "as1_t2.h"
+#include "as1_t3.h"
 #include <stdlib.h>
 #include <string.h>
 
