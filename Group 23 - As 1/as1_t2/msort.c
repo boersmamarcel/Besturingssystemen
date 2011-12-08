@@ -30,7 +30,7 @@ void debug_tasks(task_t** tasks, int count) {
  */
 void msort(task_t** tasks, int count)
 {
-  printf("%p", tasks);
+  //printf("%p", tasks);
 
   if (count <= 1) {
     // Nothing happens here, because when there is only one or if there are zero elements in the array the array is already sorted.
