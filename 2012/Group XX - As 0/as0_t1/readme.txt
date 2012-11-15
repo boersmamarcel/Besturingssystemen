@@ -1,8 +1,19 @@
-1. We hebben eerst minix geinstalleerd.
-2. Vervolgens de dummy.c in de /usr/src/lib/libc/other/ map gezet
-3. We hebben dummy.c toegevoegd aan de makefile.inc
-4. vervolgens hebben we de dummy functie gedefined in de stdlib.h in /usr/src/include/stdlib.h
-5. we hebben make libraries uitgevoerd
-6. we hebben make includes uitgevoerd
-7. we as0_t1.c gecompiled met cc -Wall as0_t1.c command
-8. vervolgens hebben we uitgevoerd met ./a.out en het gaf de gewenste output!!! TADA
+1. We installed VMWare fusion (for Mac) and installed the Minix iamge
+2. We created dummy.c with the appropriate code in /usr/src/lib/libc/other/
+3. dummy.c was added to the makefile ( /usr/src/lib/libc/other/Makefile.inc)
+4. The dummy() function was added in the stdlib.h header file in /usr/src/include/stdlib.h
+5. Executed "make libraries"
+6. Executed "make includes"
+7. as0_t1.c compiled using "cc -Wall as0_t1.c"
+8. Executed ./a.out and retrieved the output below
+
+
+
+We will now invoke the dummy command in libc. If your implementation would print anything to the standard output, it should be printed here as well.
+The test ends with the line "[End of Test]". If there is no such output, the program crashed and you're not done yet :).
+-- Your friendly BeSys instructors.
+
+[Begin of Test]
+You're a dummy.
+
+[End of Test]
