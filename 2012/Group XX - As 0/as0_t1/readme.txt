@@ -1,4 +1,4 @@
-1. We installed VMWare fusion (for Mac) and installed the Minix iamge
+1. We installed VMWare fusion (for Mac) and installed the Minix image
 2. We created dummy.c with the appropriate code in /usr/src/lib/libc/other/
 3. dummy.c was added to the makefile ( /usr/src/lib/libc/other/Makefile.inc)
 4. The dummy() function was added in the stdlib.h header file in /usr/src/include/stdlib.h
