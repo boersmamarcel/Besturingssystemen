@@ -1,110 +1,102 @@
 #include <stdio.h>
-#include <time.h>
+#include <stdlib.h>
 #include <pthread.h>
 #include <unistd.h>
 #include <math.h>
-#include <stdlib.h>
+#include <time.h>
 
+#define MICROCONVERT 1000000
+#define CALCULATION_COMPLETED 1
+#define CALCULATION_NOT_COMPLETED 0
+
+/* struct for communicating the limits to the calculation thread */
+typedef struct {
+    int iterations;
+	int time;
+} limits;
+
+/* Mutex lock */
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
-typedef struct {
-    int time;
-    int maxIteration;
-} Limit;
-
-double pi = 0;
+double pi;
 int iteration = 0;
+int completed = CALCULATION_NOT_COMPLETED;
 
-void *printPiValue(void *params)
-{
-
-    Limit *values = params;
-
-    while(1)
-    {
-
-        if(((clock()/CLOCKS_PER_SEC) > values->time) || iteration > values->maxIteration)
-        {
-            pthread_exit(0);
-            break;
-        }
-
-
-        pthread_mutex_lock(&mutex);
-
-        printf("Pi is currently: %.10f \n", 4*pi);
-
-        pthread_mutex_unlock(&mutex);
-        usleep(2000000);
-
-    }
+void *piCalculation(void *params) {
+	
+	limits *my_limit = params;
+	
+	while(1) {
+		pthread_mutex_lock(&mutex);
+		
+		/* Check for limits, if iterations and time are 0 it should run indefinitely */
+		if((iteration >= my_limit->iterations || clock()/CLOCKS_PER_SEC > my_limit->time) && (my_limit->iterations != 0 && my_limit->time != 0)) {
+			
+			/* Mark as completed for the print thread */
+			completed = CALCULATION_COMPLETED;
+			
+			pthread_mutex_unlock(&mutex);
+			pthread_exit(0);
+		}
+		
+		/* Leibniz pi calculation */
+		pi += pow(-1.0, iteration) / ((double)2*iteration+1);
+		iteration++;
+		
+		pthread_mutex_unlock(&mutex);
+	}
+	
+	return NULL;
 }
 
-
-
-void *calculatePiValue(void *params){
-
-    Limit *values = params;
-    while(1)
-    {
-         if(((clock()/CLOCKS_PER_SEC) > values->time) || iteration > values->maxIteration)
-        {
-            /*stop the thread limit is reached*/
-            printf("Limit reached done calculating\n");
-            pthread_exit(0);
-            break;
-        }
-
-        /*lock on object because we are going to change the value*/
-        pthread_mutex_lock(&mutex);
-
-        /*calculate pi value*/
-        pi = pi + (pow(-1, iteration) / ((double)2*iteration + 1));
-
-        /*unlock object for others*/
-        pthread_mutex_unlock(&mutex);
-
-        /*update the iteration count*/
-        iteration = iteration + 1;
-    }
-
+void *piPrinting(void *params) {
+	
+	while(1) {
+		pthread_mutex_lock(&mutex);
+		/* Check for thread completion */
+		if(completed == CALCULATION_COMPLETED) {
+			printf("Iteration: %20d %.15f\n", iteration, pi*4);
+			printf("Done!\n");
+			pthread_mutex_unlock(&mutex);
+			pthread_exit(0);
+		}
+		printf("Iteration: %20d %.15f\n", iteration, pi*4);
+		pthread_mutex_unlock(&mutex);
+		
+		/* Wait until next print */
+		usleep(2*MICROCONVERT);
+	}
+	
+	return NULL;
 }
 
-int main(int argc, char* argv[])
-{
-    printf("Welcome to this awesome but however useless pi calculating program.\n");
-    printf("Most people know that pi is something like 3.14... but we are going to calculate it for you :)\n");
-    printf("And we are so awesome we do it with threads\n");
-
-    /*create thread*/
-    pthread_t calculation_thread[2];
-
-    /*set limits (time and iteration)*/
-    Limit params;
-    if(argc  == 3)
-    {
-        params.time = atoi(argv[1]);
-        params.maxIteration = atoi(argv[2]);
-    }else if(argc == 1)
-    {
-        params.time= 10000000;
-        params.maxIteration= 1000000000;
-    }else{
-        return 1;
-    }
-
-    pthread_attr_t attr;
-    pthread_attr_init(&attr);
-
-
-    /*create thread*/
-    pthread_create(&calculation_thread[0], &attr, calculatePiValue,  &params);
-    pthread_create(&calculation_thread[1], &attr, printPiValue,  &params);
-
-    /*let the other thread join with the main thread*/
-    pthread_join(calculation_thread[0], 0);
-    pthread_join(calculation_thread[1], 0);
-
-    return 0;
+int main(int argc, char *argv[]) {
+	
+	pthread_t calculation_thread;
+	pthread_t print_thread;
+	
+	limits calc_limit;
+	
+	/* Check for command line input */
+	if(argc == 1) {
+		calc_limit.iterations = 0;
+		calc_limit.time = 0;
+	}else if(argc == 3) {
+		calc_limit.time = atoi(argv[1]);
+		calc_limit.iterations = atoi(argv[2]);
+	}else {
+		printf("Usage: %s\n\tLoops indefinitely\n", argv[0]);
+		printf("Usage: %s time iterations\n\tLimits to time seconds or iterations\n", argv[0]);
+		return 1;
+	}
+	
+	/* Create threads */
+	pthread_create(&calculation_thread, NULL, piCalculation, &calc_limit);
+	pthread_create(&print_thread, NULL, piPrinting, NULL);
+	
+	/* Wait for calculation and printing threads to finish */
+	pthread_join(calculation_thread, NULL);
+	pthread_join(print_thread, NULL);
+	
+	return 0;
 }
-
