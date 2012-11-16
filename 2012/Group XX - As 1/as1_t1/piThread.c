@@ -8,6 +8,8 @@
 #define MICROCONVERT 1000000
 #define CALCULATION_COMPLETED 1
 #define CALCULATION_NOT_COMPLETED 0
+/* This defines the time interval for the printer thread */
+#define PRINT_TIME 2
 
 /* struct for communicating the limits to the calculation thread */
 typedef struct {
@@ -64,7 +66,7 @@ void *piPrinting(void *params) {
 		pthread_mutex_unlock(&mutex);
 		
 		/* Wait until next print */
-		usleep(2*MICROCONVERT);
+		usleep(PRINT_TIME*MICROCONVERT);
 	}
 	
 	return NULL;
