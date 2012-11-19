@@ -32,6 +32,7 @@ void *piCalculation(void *params) {
 		pthread_mutex_lock(&mutex);
 		
 		/* Check for limits, if iterations and time are 0 it should run indefinitely */
+		/* NOTE: clock() is based on running time of this program, not on actual real world time that has passed */
 		if((iteration >= my_limit->iterations || clock()/CLOCKS_PER_SEC > my_limit->time) && (my_limit->iterations != 0 && my_limit->time != 0)) {
 			
 			/* Mark as completed for the print thread */
