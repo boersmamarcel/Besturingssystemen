@@ -43,14 +43,14 @@ void merge(task_t **tasks, int left, int right) {
 
 void merge_sort(task_t **tasks, int left, int right) {
 	
-	// Only split up when more than two elements
+	// Only split up when two or more elements
 	if(left >= 2) {
 		int newleft = left/2;
 		int newright = left-newleft;
 		merge_sort(tasks, newleft, newright);
 	}
 	
-	// Only split up when more than two elements
+	// Only split up when two or more elements
 	if(right >= 2) {
 		int newleft = right/2;
 		int newright = right-newleft;
