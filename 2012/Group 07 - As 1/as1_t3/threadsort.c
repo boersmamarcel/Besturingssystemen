@@ -10,7 +10,7 @@
 #include <errno.h>
 
 // Max number of threads
-#define MAX_THREAD_COUNT 20
+#define MAX_THREAD_COUNT 4
 
 // // Thread pool (not used now)
 // pthread_t thread_pool[MAX_THREAD_COUNT];
@@ -77,35 +77,40 @@ void merge_sort(task_t **tasks, int left, int right) {
 	if(left >= 2) {
 		int newleft = left/2;
 		int newright = left-newleft;
-		pthread_mutex_lock(&mutex);
 		if (thread_count < MAX_THREAD_COUNT) {
-			// Left gets a new thread
-			merge_args args;
-			args.tasks = tasks;
-			args.left = newleft;
-			args.right = newright;
+			pthread_mutex_lock(&mutex);
+			// Look if still under the thread limit
+			if (thread_count < MAX_THREAD_COUNT) { 
+				thread_count++;
+				pthread_mutex_unlock(&mutex);
+				// Left gets a new thread
+				merge_args args;
+				args.tasks = tasks;
+				args.left = newleft;
+				args.right = newright;
 
-			// printf("Creating new thread! Current count: %d \n", thread_count);
-			thread_created = 1;
-			thread_count++;
-			pthread_mutex_unlock(&mutex);
-			int thread_result = pthread_create(&left_thread, NULL, merge_thread_sort, &args);
-			
-			//ERROR HANDLING
-			if (thread_result == EAGAIN) {
-				printf("THREAD ERROR: %d, NO RESOURCES LEFT IN SYSTEM",thread_result);
-				// exit(127);
-				thread_created = 0;
-			} else if (thread_result == EINVAL) {
-				printf("THREAD ERROR: %d, EINVAL",thread_result);
-				exit(127);
-			} else if (thread_result == EPERM) {
-				printf("THREAD ERROR: %d, EPERM",thread_result);
-				exit(127);
+				// printf("Creating new thread! Current count: %d \n", thread_count);
+				thread_created = 1;
+				int thread_result = pthread_create(&left_thread, NULL, merge_thread_sort, &args);
+				
+				//ERROR HANDLING
+				if (thread_result == EAGAIN) {
+					printf("THREAD ERROR: %d, NO RESOURCES LEFT IN SYSTEM",thread_result);
+					// exit(127);
+					thread_created = 0;
+				} else if (thread_result == EINVAL) {
+					printf("THREAD ERROR: %d, EINVAL",thread_result);
+					exit(127);
+				} else if (thread_result == EPERM) {
+					printf("THREAD ERROR: %d, EPERM",thread_result);
+					exit(127);
+				}
+			} else {
+				pthread_mutex_unlock(&mutex);
 			}
 		}
 		if(thread_created == 0) {
-			pthread_mutex_unlock(&mutex);
+			// pthread_mutex_unlock(&mutex);
 			// printf("Max thread reached, do it yourself! Current count: %d \n", thread_count);
 			
 			merge_sort(tasks, newleft, newright);
