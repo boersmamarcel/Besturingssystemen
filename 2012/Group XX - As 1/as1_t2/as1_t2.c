@@ -133,10 +133,10 @@ void sortTasks(task_t** reference, int count){
 	/* Assert */
 	assert(expected != NULL);
 	assert(actual != NULL);
-	//printf("%3s :: %5s | %5s | %5s\n","#","[exp]","[act]","[ref]");
+//	printf("%3s :: %5s | %5s | %5s\n","#","[exp]","[act]","[ref]");
 	for(i=0; i<count; ++i){
-		//printf("%3d :: %5lu | %5lu | %5lu\n", i, expected[i]->id, actual[i]->id, reference[i]->id);
-		if (expected[i]->id != actual[i]->id) faults++;
+//		printf("%3d :: %5lu | %5lu | %5lu\n", i, expected[i]->id, actual[i]->id, reference[i]->id);
+		if ((unsigned long) expected[i]->id != (unsigned long) actual[i]->id) faults++;
 	}
 	assert(0 == faults);
 	
