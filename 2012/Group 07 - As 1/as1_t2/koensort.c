@@ -39,6 +39,8 @@ void merge(task_t **tasks, int left, int right) {
 	for(i = 0; i < left+right; i++) {
 		tasks[i] = temp[i];
 	}
+	
+	free(temp);
 }
 
 void merge_sort(task_t **tasks, int left, int right) {
