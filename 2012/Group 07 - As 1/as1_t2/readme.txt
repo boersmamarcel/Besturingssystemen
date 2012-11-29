@@ -1,0 +1,1 @@
+For our mergesort implementation, we used pointers to define the partitions of the array.

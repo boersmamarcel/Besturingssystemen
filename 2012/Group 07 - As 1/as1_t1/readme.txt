@@ -1,0 +1,1 @@
+For this assignment, we used the Leibniz formula to calculate pi in one thread. For thread safety, we used a mutex object on the PiCalculator thread. We pass around the time/iterations limits via a self defined limits struct. This is used to make sure the threads correctly terminate
