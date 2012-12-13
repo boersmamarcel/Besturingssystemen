@@ -30,10 +30,50 @@
 #else
 #define	PTRSIZE		((int) sizeof(void *))
 #endif
+/* Align pakt a -1, telt dat op bij x, en bitwise AND het met de inverse van a - 1 */
 #define Align(x,a)	(((x) + (a - 1)) & ~(a - 1))
-#define NextSlot(p)	(* (void **) ((p) - PTRSIZE))
-#define NextFree(p)	(* (void **) (p))
+// maak p magisch met sterrenstof
+#define NextSlot(p)	(* (void **) ((p) - PTRSIZE)) //pak het nextslot pointer adres (8 byte voor de user visible part)
+#define NextFree(p)	(* (void **) (p)) //pak de nextfree slot (eerste adres in user visible part)
 
+
+/* Wat de @#$& doet align, vijf voorbeelden: */
+/* rond af naar de bovenste meervoud van a(PTRSIZE) */
+x = 	0001 0000 //16
+a =  	0000 1000
+a-1 = 	0000 0111
+x+a-1=	0001 0111
+~(a-1) =1111 1000
+& 	   =0001 0000 //16
+
+
+x = 	0001 0001 //17
+a =  	0000 1000
+a-1 = 	0000 0111
+x+a-1=  0001 1000
+~(a-1) =1111 1000
+&       0001 1000 //24
+
+x =		0001 1000 //24
+a =  	0000 1000
+a-1 = 	0000 0111
+x+a-1 = 0001 1111
+~(a-1) =1111 1000
+&  	= 	0001 1000 // 24
+
+x =		0000 0011 //3
+a =  	0000 1000
+a-1 = 	0000 0111
+x+a-1 = 0000 1010
+~(a-1) =1111 1000
+&  	= 	0000 1000 //8
+
+x =		  0000 0000 1111 1111 //255
+a =  	  0000 0000 0000 1000
+a-1 = 	  0000 0000 0000 0111
+x+a-1 =   0000 0001 0000 0110 
+~(a-1) =  1111 1111 1111 1000
+&  	= 	  0000 0001 0000 0000 //256:
 /*
  * A short explanation of the data structure and algorithms.
  * An area returned by malloc() is called a slot. Each slot
@@ -42,12 +82,12 @@
  * '_bottom' and '_top' point to the first/last slot.
  * More memory is asked for using brk() and appended to top.
  * The list of free slots is maintained to keep malloc() fast.
- * '_empty' points the the first free slot. Free slots are
+ * '_empty' points  the first free slot. Free slots are
  * linked together by a pointer at the start of the
  * user visable part, so just after the next-slot pointer.
  * Free slots are merged together by free().
  *
- * Since modern processors prefer 8-byte alignment, we now pretend
+ * Since computers came out of the stoneage, processors prefer 8-byte alignment, we now pretend
  * our pointers are 8 bytes wide.
  */
 
@@ -60,67 +100,84 @@ static int grow(size_t len)
   register char *p;
 
   assert(NextSlot((char *)_top) == 0);
-  if ((char *) _top + len < (char *) _top
-      || (p = (char *)Align((ptrint)_top + len, BRKSIZE)) < (char *) _top ) {
+  if ((char *) _top + len < (char *) _top // Overflow check op de _top + len
+      || (p = (char *)Align((ptrint)_top + len, BRKSIZE)) < (char *) _top ) { //overflow check als ceiled op BRKSIZE 
 	errno = ENOMEM;
 	return(0);
   }
-  if (_brk(p) != 0)
-	return(0);
-  NextSlot((char *)_top) = p;
-  NextSlot(p) = 0;
-  free(_top);
-  _top = p;
+  // Jas er in een keer maar een aantal keer BRKSIZE bij (len geceiled op BRKSIZE)
+  if (_brk(p) != 0) //probeer memory op te hogen, _brk returnt -1 als er iets fout gaat
+	return(0); //return 0: er ging iets fout
+  NextSlot((char *)_top) = p; //zet de next slot van _top naar p
+  NextSlot(p) = 0; //zet de next slot van p naar 0
+  free(_top); //maak een free slot van de nieuw gemaakte data
+  _top = p; //zet de _top van de memory shit op p.
   return 1;
 }
 
 void * malloc(const size_t size) {
-  register char *prev, *p, *next, *new;
-  unsigned ntries;
+  register char *prev, /* Points to the prev */
+  	 *p, /* Points to the p */
+  	 *next,   /* Points to the next */
+  	 *new;  /* Points to the new */
+  unsigned ntries; /* Holds the current try, 0 or 1 */
 
+  /* Obviously, if the size of the requested memory is zero, return NULL */
   if (size == 0)
 	return NULL;
-
+  
+  /* Try to run this two times,
+   	first time: check for current free slots
+   	second time: grow has created a new free slot at the top of the memoryspace, so use that
+   	*/
   for (ntries = 0; ntries < 2; ntries++) {
-	unsigned len = Align(size, PTRSIZE) + PTRSIZE;
-	if (len < 2 * PTRSIZE) {
+
+	/* Neem size afgerond naar boven op meervoud PTRSIZE, tel PTRSIZE er bijop */
+	unsigned len = Align(size, PTRSIZE) + PTRSIZE; 
+	if (len < 2 * PTRSIZE) { // Overflowcheck: Check of de size van het blok in ptrsize niet groter is dan maximale memory, anders out of memory
 		errno = ENOMEM;
 		return NULL;
 	}
-	if (_bottom == 0) {
-		if ((p = _sbrk(2 * PTRSIZE)) == (char *) -1)
-			return NULL;
-		p = (char *) Align((ptrint)p, PTRSIZE);
-		p += PTRSIZE;
-		_top = _bottom = p;
-		NextSlot(p) = 0;
+	if (_bottom == 0) { //_bottom is nog niet geset (immers, 0 is geen geldig adres)
+		if ((p = _sbrk(2 * PTRSIZE)) == (char *) -1) //Maak ruimte voor de eerste slot
+			return NULL; //Geen ruimte, err err
+		p = (char *) Align((ptrint)p, PTRSIZE); 
+		p += PTRSIZE; //tel nogmaals ptrsize bij p op
+		_top = _bottom = p; //de top en de bottom beginnen bij p
+		NextSlot(p) = 0; //Zet de volgende  slot van p op 
 	}
 #ifdef SLOWDEBUG
 	for (p = _bottom; (next = NextSlot(p)) != 0; p = next)
 		assert(next > p);
 	assert(p == _top);
 #endif
+	// Zoek naar een free slot in de freeslot-linkedlist, geen free slot: skip
 	for (prev = 0, p = _empty; p != 0; prev = p, p = NextFree(p)) {
-		next = NextSlot(p);
-		new = p + len;	/* easily overflows!! */
-		if (new > next || new <= p)
+		// Check of dit freeslot groot genoeg is.
+		next = NextSlot(p); //pak adres volgende slot
+		new = p + len;	/* easily overflows!! */ /* FIX HET DAN! */
+		if (new > next || new <= p) 
+		//als het berekende adres van het nieuwe slot verder ligt dan het eerst volgende slot, dan is het huidige freeslot te klein! 
 			continue;		/* too small */
 		if (new + PTRSIZE < next) {	/* too big, so split */
 			/* + PTRSIZE avoids tiny slots on free list */
+			/* bovenstaande is helder, split als te groot */
 			NextSlot(new) = next;
 			NextSlot(p) = new;
 			NextFree(new) = NextFree(p);
 			NextFree(p) = new;
 		}
-		if (prev)
+		if (prev) //prev is niet null
 			NextFree(prev) = NextFree(p);
 		else
-			_empty = NextFree(p);
-		return p;
+			_empty = NextFree(p); //prev is null, dus het laatste empty slot in de freeslots list is nu de laatste van p.
+		return p; // Alweer een winnaar!
 	}
-	if (grow(len) == 0)
-		break;
+	// geen nieuw slot gevonden.
+	if (grow(len) == 0) //probeer nieuw memory te allocaten
+		break; //NOPE, dit gaat fout.
   }
+  // beter is dit wel twee keer gedaan.
   assert(ntries != 2);
   return NULL;
 }
@@ -177,60 +234,37 @@ realloc(void *oldp, size_t size)
   return new;
 }
 
-void
-free(void *ptr)
-{
+void free(void *ptr) {
   register char *prev, *next;
-  char *p = ptr;
+  char *p = ptr; //puts the ptr in p as a char
 
-  if (p == 0)
+  if (p == 0) //p is zero, so no use in freeing that
 	return;
 
-#ifdef SLOWDEBUG
-  {
-  	int found;
-	char *curr;
-
-	/* block must be in block list */
-	assert(_bottom);
-	found = 0;
-	for (curr = _bottom; (next = NextSlot(curr)) != 0; curr = next) {
-		assert(next > curr);
-		if (curr == p) found = 1;
-	}
-	if (curr == p) found = 1;
-	assert(found);
-
-	/* block must not be in free list */
-	if (_empty) {
-		found = 0;
-		for (curr = _empty; (next = NextFree(curr)) != 0; curr = next) {
-			assert(next > curr);
-			if (curr == p) found = 1;
-		}
-		if (curr == p) found = 1;
-		assert(!found);
-	}
-  }
-#endif
+  //removed slowdebug, for debugging purposes
 
   assert((char *) NextSlot(p) > p);
+  //Loop door de freelist list, zoek naar een next die meer is dan p
+  //de list is opvolgorde
   for (prev = 0, next = _empty; next != 0; prev = next, next = NextFree(next))
 	if (p < next)
 		break;
+  //Plaats p in de linkedlist van vrije slots
   NextFree(p) = next;
   if (prev)
 	NextFree(prev) = p;
   else
 	_empty = p;
-  if (next) {
+  
+  //Merge the possible adjacent freeslots
+  if (next) { //Kijk of er een freeslot direct na p is
 	assert((char *) NextSlot(p) <= next);
 	if (NextSlot(p) == next) {		/* merge p and next */
 		NextSlot(p) = NextSlot(next);
 		NextFree(p) = NextFree(next);
 	}
   }
-  if (prev) {
+  if (prev) {//Kijk of er een freeslot direct voor p is
 	assert((char *) NextSlot(prev) <= p);
 	if (NextSlot(prev) == p) {		/* merge prev and p */
 		NextSlot(prev) = NextSlot(p);
@@ -238,3 +272,4 @@ free(void *ptr)
 	}
   }
 }
+
