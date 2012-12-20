@@ -1,4 +1,4 @@
-Benchmark van malloc vs. onze oplossing:
+Benchmark of malloc vs. our solution:
 
 # cc benchmark.c solution.c
 # ./a.out
@@ -23,5 +23,5 @@ Benchmarking our solution:
 Time: 266667 microsec
 
 
-We zien dat onze oplossing bijna 2 keer zo snel is. 
-Wat ons opviel, is dat de time functie zoals door de kernel geleverd wordt nauwkeuriger lijkt dan de gettimeofday() functie die wij gebruiken. De door ons gebruikte functie "gettimeofday()" doet het best aardig, maar we zien dat hij niet echt op microseconden nauwkeurig is. In plaats daarvan geeft hij een benadering van de tijd, gelukkig is deze al goed genoeg om te laten zien dat onze oplossing significant sneller is dan malloc.
+The results clearly show that our solution in almost twice as fast as the regular malloc implementation.
+We also noticed the time command seems more accurate than the gettimeofday() function we used. Although gettimeofday() is precise enough to show difference between the two benchmarked implementations, it clearly is not accurate on microseconds (or even close to accurate). Luckily, our solution was awesome enough not to need such accuracy.
