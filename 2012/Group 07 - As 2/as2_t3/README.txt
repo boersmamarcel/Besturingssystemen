@@ -1,0 +1,3 @@
+task_alloc() was adjusted to allocate a memory block itself when no memory is available. This is done using a call to sbrk with a fixed MEM_BLOCK_SIZE (1MB for this version of the script) on lines 35 (for initialization) and line 63.
+
+Furthermore task_free() has been altered to check if a pointer is within several possible memory blocks, by using a linked list of allocated memory blocks (e.g., the 1MB blocks allocated in task_alloc()).
