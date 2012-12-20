@@ -3,7 +3,7 @@
 
 #include <unistd.h>
 #include <stdio.h>
-#include "as2_t3.h"
+#include "solution.h"
 
 #define MEM_BLOCK_SIZE 1024*1024
 
@@ -102,5 +102,6 @@ void task_free(void *ptr) {
 		newspace->this_space = ptr;
 		newspace->next_space = lastempty;
 		lastempty = newspace;
+ 		ptr = NULL;
 	}
 }

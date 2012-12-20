@@ -44,6 +44,5 @@ void task_free(void *ptr) {
 		newspace->this_space = ptr;
 		newspace->next_space = lastempty;
 		lastempty = newspace;
- 		ptr = NULL;
 	}
 }
