@@ -25,11 +25,11 @@ static void my_init_hook(void)
         dir_stat.size = 0; //Size of the file
         dir_stat.dev = NO_DEV; //devise number
 
-				file_stat.mode = S_IFDIR | 0444;
-	      file_stat.uid = 0;
-	      file_stat.gid = 0;
-	      file_stat.size = 0;
-	      file_stat.dev = NO_DEV;
+				file_stat.mode = S_IFREG | 0444;
+	      file_stat.uid = 0; //User id (owner)
+	      file_stat.gid = 0; //Group id (owner)
+	      file_stat.size = 0; //Size of the file
+	      file_stat.dev = NO_DEV; //devise number
 				
 
         /* Now create the actual file. It is called "test" and does not have an
@@ -50,7 +50,7 @@ static int my_read_hook(struct inode *inode, off_t offset, char **ptr,
         /* This hook will be called every time a regular file is read. We use
          * it to dyanmically generate the contents of our file.
          */
-        static char data[26];
+        static char data[32];
         const char *str;
         time_t now;
 
@@ -65,7 +65,7 @@ static int my_read_hook(struct inode *inode, off_t offset, char **ptr,
          */
         time(&now);
 
-        str = ctime(&now);
+        str = "Hello world! Group 07 was here.";
 
         strcpy(data, str);
 
