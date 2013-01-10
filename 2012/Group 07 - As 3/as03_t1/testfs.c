@@ -10,8 +10,8 @@ static void my_init_hook(void)
          */
         struct inode_stat dir_stat;
 				struct inode_stat file_stat;
-        struct inode *inode;
-				struct inode *inode_2;
+        struct inode *as3_dir;
+				struct inode *t1_file;
 
         /* We create one regular file in the root directory. The file is
          * readable by everyone, and owned by root. Its size as returned by for
@@ -20,27 +20,28 @@ static void my_init_hook(void)
          * typically set to zero.
          */
         dir_stat.mode = S_IFDIR | 0444;
-        dir_stat.uid = 0;
-        dir_stat.gid = 0;
-        dir_stat.size = 0;
-        dir_stat.dev = NO_DEV;
+        dir_stat.uid = 0; //User id (owner)
+        dir_stat.gid = 0; //Group id (owner)
+        dir_stat.size = 0; //Size of the file
+        dir_stat.dev = NO_DEV; //devise number
 
-				  file_stat.mode = S_IFDIR | 0444;
-	        file_stat.uid = 0;
-	        file_stat.gid = 0;
-	        file_stat.size = 0;
-	        file_stat.dev = NO_DEV;
+				file_stat.mode = S_IFDIR | 0444;
+	      file_stat.uid = 0;
+	      file_stat.gid = 0;
+	      file_stat.size = 0;
+	      file_stat.dev = NO_DEV;
 				
 
         /* Now create the actual file. It is called "test" and does not have an
          * index number. Its callback data value is set to 1, allowing it to be
          * identified with this number later.
          */
-        inode = add_inode(get_root_inode(), "test", NO_INDEX, &dir_stat, 0,
+        as3_dir = add_inode(get_root_inode(), "as3", NO_INDEX, &dir_stat, 0,
                 (cbdata_t) 1);
-				inode_2 = add_inode(inode, "test_copy", NO_INDEX, &file_stat, 0, (cbdata_t) 1);
+				t1_file = add_inode(as3_dir, "t1", NO_INDEX, &file_stat, 0, (cbdata_t) 1);
 
-        assert(inode != NULL);
+        assert(as3_dir != NULL);
+				assert(t1_file != NULL);
 }
 
 static int my_read_hook(struct inode *inode, off_t offset, char **ptr,
