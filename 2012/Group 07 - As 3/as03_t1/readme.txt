@@ -29,7 +29,7 @@ Experience the filesystem
 	$> cd /media
 	$> ls
 
-All in one:
+All in one (Don't forget to edit the system.conf):
 	$> cd as03_t1
 	$> make && make install && umount /media/ && mount -t testfs none /media/
 	$> ls /media/
