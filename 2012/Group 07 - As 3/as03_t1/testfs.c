@@ -25,11 +25,11 @@ static void my_init_hook(void)
         dir_stat.size = 0; //Size of the file
         dir_stat.dev = NO_DEV; //devise number
 
-				file_stat.mode = S_IFDIR | 0444;
-	      file_stat.uid = 0;
-	      file_stat.gid = 0;
-	      file_stat.size = 0;
-	      file_stat.dev = NO_DEV;
+	    file_stat.mode = S_IFDIR | 0444;
+        file_stat.uid = 0;
+        file_stat.gid = 0;
+        file_stat.size = 0;
+        file_stat.dev = NO_DEV;
 				
 
         /* Now create the actual file. It is called "test" and does not have an
