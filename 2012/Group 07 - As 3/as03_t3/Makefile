@@ -1,11 +1,13 @@
 # Makefile for TestFS server
 PROG=   testfs
-SRCS=   testfs.c
+SRCS=   testfs.c main.c bencode.c
 
 DPADD+= ${LIBVTREEFS} ${LIBSYS}
-LDADD+= -lvtreefs -lsys
+LDADD+= -lvtreefs -lsys 
 
-CFLAGS+= -D_NETBSD_SOURCE=1
+CFLAGS+= -D_NETBSD_SOURCE=1 
+CFLAGS+= -Wall
+CFLAGS+= -g
 
 MAN=
 
