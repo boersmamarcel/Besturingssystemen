@@ -6,6 +6,8 @@
 #include <assert.h>
 #include "testfs.h"
 
+#define MAX_INODES 10
+
 
 
 int main(int argv, char* argc[])
@@ -27,7 +29,7 @@ int main(int argv, char* argc[])
     /* Now start VTreeFS. Preallocate 10 inodes, which is more than we'll
      * need for this example. No indexed entries are used.
      */
-    start_vtreefs(&my_hooks, 10, &root_stat, 0);
+    start_vtreefs(&my_hooks, MAX_INODES, &root_stat, 0);
     
     /* The call above never returns. This just keeps the compiler happy. */
     return 0;
