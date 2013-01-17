@@ -5,45 +5,83 @@
 #include <assert.h>
 #include "bencode.h"
 
+typedef struct file{
+    inode *parent;
+    inode *me;
+    
+} file;
+
+static void create_dir(char *name, inode *parent = NULL)
+{
+    
+    printf("Create directory %s", name);
+    struct inode_stat dir_stat;
+    struct inode *dir;
+    //Generate dir stats
+    dir_stat.mode = S_IFDIR | 0444;
+    dir_stat.uid = 0; //User id (owner)
+    dir_stat.gid = 0; //Group id (owner)
+    dir_stat.size = 0; //Size of the file
+    dir_stat.dev = NO_DEV; //devise number
+    
+    if(parent == NULL){
+        dir = add_inode(get_root_inode(), str(name, PNAME_MAX), NO_INDEX, &dir_stat, 0,
+                        (cbdata_t) 1);
+    }else{
+        dir = add_inode(parent, str(name, PNAME_MAX), NO_INDEX, &dir_stat, 0,
+                        (cbdata_t) 1);
+    }
+    
+    assert(dir != NULL);
+    
+}
+
+static void create_file(char *file, inode *parent)
+{
+    
+}
+
+static be_node* read_file_with_root_node()
+{
+    // Lees het benfile in
+    char *filename = "file.ben";
+    
+    struct stat fileStats;
+    FILE *fp = fopen(filename, "r");
+    char *contents = NULL;
+    
+    if(!fp) {
+        printf("File pointer failure.");
+        exit(EXIT_FAILURE);
+    }
+    
+    if(stat(filename, &fileStats) != 0) {
+        printf("Failure.");
+        exit(EXIT_FAILURE);
+    }
+    
+    contents = malloc(fileStats.st_size);
+    fread(contents, 1, fileStats.st_size, fp);
+    
+    //Decode het ben file naar een be_node
+    be_node *node = be_decoden(contents, fileStats.st_size);
+    
+    return node;
+}
+
+
+
 static void my_init_hook(void)
 {
-  // Lees het benfile in
-  char *filename = "file.ben";
-  
-  struct stat fileStats;
-  FILE *fp = fopen(filename, "r");
-  char *contents = NULL;
-  
-  if(!fp) {
-    printf("File pointer failure.");
-    exit(EXIT_FAILURE);
-  }
-  
-  if(stat(filename, &fileStats) != 0) {
-    printf("Failure.");
-    exit(EXIT_FAILURE);
-  }
-  
-  contents = malloc(fileStats.st_size);
-  fread(contents, 1, fileStats.st_size, fp);
-	// File.ben staat nu in contents
 
   //Decode het ben file naar een be_node
-  be_node *node = be_decoden(contents, fileStats.st_size);
+  be_node *node = read_file_with_root_node();
   if(node) {
     if(node->type != BE_DICT) {
      printf("Invalid format.");
      exit(EXIT_FAILURE);
    } else {
      int i;
-     struct inode_stat dir_stat;
-     struct inode *dir;
-      //Generate dir stats
-     dir_stat.mode = S_IFDIR | 0444;
-      dir_stat.uid = 0; //User id (owner)
-      dir_stat.gid = 0; //Group id (owner)
-      dir_stat.size = 0; //Size of the file
-      dir_stat.dev = NO_DEV; //devise number
 
 
       //Walk through the properties of the dict.
@@ -52,9 +90,9 @@ static void my_init_hook(void)
 				if(strcmp(node->val.d[i].key, "title") == 0) { //We've landed on the title, use it
           printf("We hebben een title");
                     //title equals directory
-        dir = add_inode(get_root_inode(), node->val.d[i].val->val.s, NO_INDEX, &dir_stat, 0,
-          (cbdata_t) 1);
-        assert(dir != NULL);
+                    
+        create_dir(node->val.d[i].val->val.s);
+                    
         printf("Dir is niet null, yay");
       } else if(strncmp(node->val.d[i].key, "item", 4) == 0){
         
