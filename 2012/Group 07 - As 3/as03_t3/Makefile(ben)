@@ -5,9 +5,9 @@ CPPFLAGS += -DBE_DEBUG
 all: test
 
 test: bencode.o
-	cc ${CFLAGS} -o test test.c bencode.o
+	cc ${CFLAGS} -o solution.bas solution.bas.c bencode.o
 	
 clean:
-	rm -f *.o core test
+	rm -f *.o core solution.bas
 
 .PHONY: all clean
