@@ -5,7 +5,6 @@
 #include <time.h>
 #include <assert.h>
 #include "testfs.h"
-#include "bencode.h"
 
 
 

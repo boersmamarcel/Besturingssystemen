@@ -3,45 +3,109 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <assert.h>
+#include "bencode.h"
 
 static void my_init_hook(void)
-{       
-        /* This hook will be called once, after VTreeFS has initialized.
-         */
-        struct inode_stat dir_stat;
-				struct inode_stat file_stat;
-        struct inode *as3_dir;
-				struct inode *t1_file;
-
-        /* We create one regular file in the root directory. The file is
-         * readable by everyone, and owned by root. Its size as returned by for
-         * example stat() will be zero, but that does not mean it is empty.
-         * For files with dynamically generated content, the file size is
-         * typically set to zero.
-         */
-        dir_stat.mode = S_IFDIR | 0444;
-        dir_stat.uid = 0; //User id (owner)
-        dir_stat.gid = 0; //Group id (owner)
-        dir_stat.size = 0; //Size of the file
-        dir_stat.dev = NO_DEV; //devise number
-
-				file_stat.mode = S_IFREG | 0444;
-	      file_stat.uid = 0; //User id (owner)
-	      file_stat.gid = 0; //Group id (owner)
-	      file_stat.size = 0; //Size of the file
-	      file_stat.dev = NO_DEV; //devise number
+{
+    
+    char *filename = "file.ben";
+	
+	struct stat fileStats;
+	FILE *fp = fopen(filename, "r");
+	char *contents = NULL;
+	
+	if(!fp) {
+		printf("File pointer failure.");
+		exit(EXIT_FAILURE);
+	}
+	
+	if(stat(filename, &fileStats) != 0) {
+		printf("Failure.");
+		exit(EXIT_FAILURE);
+	}
+	
+	contents = malloc(fileStats.st_size);
+	fread(contents, 1, fileStats.st_size, fp);
+	
+	be_node *node = be_decoden(contents, fileStats.st_size);
+	if(node) {
+		if(node->type != BE_DICT) {
+			printf("Invalid format.");
+			exit(EXIT_FAILURE);
+		}else{
+			int i;
+			
+			for (i = 0; node->val.d[i].val; ++i) {
 				
-
-        /* Now create the actual file. It is called "test" and does not have an
-         * index number. Its callback data value is set to 1, allowing it to be
-         * identified with this number later.
-         */
-        as3_dir = add_inode(get_root_inode(), "as3", NO_INDEX, &dir_stat, 0,
-                (cbdata_t) 1);
-				t1_file = add_inode(as3_dir, "t1", NO_INDEX, &file_stat, 0, (cbdata_t) 1);
-
-        assert(as3_dir != NULL);
-				assert(t1_file != NULL);
+				printf("%s\n", node->val.d[i].key);
+				if(strcmp(node->val.d[i].key, "title") == 0) {
+                    //title equals directory
+                    struct inode_stat dir_stat;
+                     struct inode *dir;
+                    
+                    dir_stat.mode = S_IFDIR | 0444;
+                    dir_stat.uid = 0; //User id (owner)
+                    dir_stat.gid = 0; //Group id (owner)
+                    dir_stat.size = 0; //Size of the file
+                    dir_stat.dev = NO_DEV; //devise number
+                    
+                    
+                    dir = add_inode(get_root_inode(), node->val.d[i].val->val.s, NO_INDEX, &dir_stat, 0,
+                                        (cbdata_t) 1);
+                    
+                    assert(dir != NULL);
+                    
+				}else if(strncmp(node->val.d[i].key, "item", 4) == 0){
+                    
+                    struct inode_stat file_stat;
+                    struct inode *file;
+                    
+                    file_stat.mode = S_IFREG | 0444;
+                    file_stat.uid = 0; //User id (owner)
+                    file_stat.gid = 0; //Group id (owner)
+                    file_stat.size = 0; //Size of the file
+                    file_stat.dev = NO_DEV; //devise number
+                    
+                    
+					int j;
+                    char *title;
+					for(j = 0; node->val.d[i].val->val.d[j].val; ++j) {
+						//~ The dictionary we're currently exploring
+						be_dict currDict = node->val.d[i].val->val.d[j];
+                        
+                        
+						if(strcmp(currDict.key, "title") == 0){
+                            //filename
+                            title = currDict.val->val.s;
+						}else if(strcmp(currDict.key, "description") == 0){
+                            //content
+                            
+							printf("description: %s\n", currDict.val->val.s);
+						}else if(strcmp(currDict.key, "link") == 0){
+                            //content
+                            
+							printf("link: %s\n", currDict.val->val.s);
+						}else if(strcmp(currDict.key, "guid") == 0){
+                            //id
+                            
+							printf("guid: %s\n", currDict.val->val.s);
+						}
+						else if(strcmp(currDict.key, "pubDate") == 0){
+                            //content
+                            
+							printf("pubDate: %s\n", currDict.val->val.s);
+						}
+                    }
+                    
+                    
+                    file = add_inode(dir, title, NO_INDEX, &file_stat, 0, (cbdata_t) 1);
+				}
+			}
+		}
+	}else{
+		printf("Not yay\n");
+	}
+    
 }
 
 static int my_read_hook(struct inode *inode, off_t offset, char **ptr,
@@ -100,24 +164,3 @@ struct fs_hooks my_hooks = {
         NULL  /* message_hook */
 };
 
-int main(void)
-{
-        struct inode_stat root_stat;
-
-        /* Fill in the details to be used for the root inode. It will be a
-         * directory, readable and searchable by anyone, and owned by root.
-         */
-        root_stat.mode = S_IFDIR | 0555;
-        root_stat.uid = 0;
-        root_stat.gid = 0;
-        root_stat.size = 0;
-        root_stat.dev = NO_DEV;
-
-        /* Now start VTreeFS. Preallocate 10 inodes, which is more than we'll
-         * need for this example. No indexed entries are used.
-         */
-        start_vtreefs(&my_hooks, 10, &root_stat, 0);
-
-        /* The call above never returns. This just keeps the compiler happy. */
-        return 0;
-}
