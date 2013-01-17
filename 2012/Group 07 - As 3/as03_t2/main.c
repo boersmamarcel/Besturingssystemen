@@ -37,20 +37,26 @@ int main(int argc, char **argv) {
 			for (i = 0; node->val.d[i].val; ++i) {
 				
 				printf("%s\n", node->val.d[i].key);
-				if(strcmp(node->val.d[i].key, "title")) {
+				if(strcmp(node->val.d[i].key, "title") == 0) {
+                    printf("title awesoem\n");
 					feedTitle = node->val.d[i].key;
-				}else if(strncmp(node->val.d[i].key, "item", 4)){
+				}else if(strncmp(node->val.d[i].key, "item", 4) == 0){
+                    
+                    printf("blaat\n");
 					int j;
-					// for(j = 0; node->val.d[i].val.d[j].val; ++j) {
+					 for(j = 0; node->val.d[i].val->val.d[j].val; ++j) {
+                         
+                         if(strcmp(node->val.d[i].val->val.d[j].key, "language") == 0){
+                             printf("language: %s\n", node->val.d[i].val->val.s);
+                         }else if(strcmp(node->val.d[i].val->val.d[j].key, "link") == 0){
+                             printf("link: %s\n", node->val.d[i].val->val.s);
+                         }else if(strcmp(node->val.d[i].val->val.d[j].key, "guid") == 0){
+                             printf("guid: %s\n", node->val.d[i].val->val.s);
+                         }
+                         
 						// printf("%s: %s\n", node->val.d[i].val.d[j].key, node->val.d[i].val.d[j].val);
-					// }
-				}else if(strcmp(node->val.d[i].key, "language")){
-                    printf("language\n");
-                }else if(strcmp(node->val.d[i].key, "link")){
-                    printf("link\n");
-                }else if(strcmp(node->val.d[i].key, "gui")){
-                    printf("gui\n");
-                }
+					 }
+				}
 			}
 		}
 	}else{
