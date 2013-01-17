@@ -38,16 +38,16 @@ int main(int argc, char **argv) {
 				
 				printf("%s\n", node->val.d[i].key);
 				if(strcmp(node->val.d[i].key, "title") == 0) {
-                    printf("title awesoem\n");
 					feedTitle = node->val.d[i].key;
 				}else if(strncmp(node->val.d[i].key, "item", 4) == 0){
                     
-                    printf("blaat\n");
 					int j;
 					 for(j = 0; node->val.d[i].val->val.d[j].val; ++j) {
                          
-                         if(strcmp(node->val.d[i].val->val.d[j].key, "language") == 0){
-                             printf("language: %s\n", node->val.d[i].val->val.s);
+                         if(strcmp(node->val.d[i].val->val.d[j].key, "title") == 0){
+                             printf("title: %s\n", node->val.d[i].val->val.s);
+                         }else if(strcmp(node->val.d[i].val->val.d[j].key, "description") == 0){
+                             printf("description: %s\n", node->val.d[i].val->val.s);
                          }else if(strcmp(node->val.d[i].val->val.d[j].key, "link") == 0){
                              printf("link: %s\n", node->val.d[i].val->val.s);
                          }else if(strcmp(node->val.d[i].val->val.d[j].key, "guid") == 0){
