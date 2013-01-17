@@ -39,7 +39,6 @@ int main(int argc, char **argv) {
 				printf("%s\n", node->val.d[i].key);
 				if(strcmp(node->val.d[i].key, "title") == 0) {
 					feedTitle = node->val.d[i].val->val.s;
-					printf(">>>%s\n", feedTitle);
 				}else if(strncmp(node->val.d[i].key, "item", 4) == 0){
                     
 					int j;
@@ -55,6 +54,9 @@ int main(int argc, char **argv) {
 							printf("link: %s\n", currDict.val->val.s);
 						}else if(strcmp(currDict.key, "guid") == 0){
 							printf("guid: %s\n", currDict.val->val.s);
+						}
+						else if(strcmp(currDict.key, "pubDate") == 0){
+							printf("pubDate: %s\n", currDict.val->val.s);
 						}
 					 }
 				}
