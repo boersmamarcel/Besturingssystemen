@@ -33,3 +33,7 @@ All in one (Don't forget to edit the system.conf):
 	$> cd as03_t1
 	$> make && make install && umount /media/ && mount -t testfs none /media/
 	$> ls /media/
+
+
+Single command;
+	$>  make && (make install || true) && ( umount /media/ || true) && mount -t testfs none /media/ && printf "\nContent of /media/as3/:\n " && ls /media/as3/ && printf "\nContents of file: \n" && cat /media/as3/t1
