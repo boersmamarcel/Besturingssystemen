@@ -45,16 +45,16 @@ int main(int argc, char **argv) {
 					 for(j = 0; node->val.d[i].val->val.d[j].val; ++j) {
                          
                          if(strcmp(node->val.d[i].val->val.d[j].key, "title") == 0){
-                             printf("title: %s\n", node->val.d[i].val->val.s);
+                             printf("title: %s\n", node->val.d[i].val->val.d[j].val->val.s);
                          }else if(strcmp(node->val.d[i].val->val.d[j].key, "description") == 0){
-                             printf("description: %s\n", node->val.d[i].val->val.s);
+                             printf("description: %s\n", node->val.d[i].val->val.d[j].val->val.s);
                          }else if(strcmp(node->val.d[i].val->val.d[j].key, "link") == 0){
-                             printf("link: %s\n", node->val.d[i].val->val.s);
+                             printf("link: %s\n", node->val.d[i].val->val.d[j].val->val.s);
                          }else if(strcmp(node->val.d[i].val->val.d[j].key, "guid") == 0){
-                             printf("guid: %s\n", node->val.d[i].val->val.s);
+                             printf("guid: %s\n", node->val.d[i].val->val.d[j].val->val.s);
                          }
                          
-						// printf("%s: %s\n", node->val.d[i].val.d[j].key, node->val.d[i].val.d[j].val);
+						
 					 }
 				}
 			}
