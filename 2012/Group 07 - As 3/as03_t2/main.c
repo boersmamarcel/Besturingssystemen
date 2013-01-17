@@ -44,7 +44,13 @@ int main(int argc, char **argv) {
 					// for(j = 0; node->val.d[i].val.d[j].val; ++j) {
 						// printf("%s: %s\n", node->val.d[i].val.d[j].key, node->val.d[i].val.d[j].val);
 					// }
-				}
+				}else if(strcmp(node->val.d[i].key, "language")){
+                    printf("language\n");
+                }else if(strcmp(node->val.d[i].key, "link")){
+                    printf("link\n");
+                }else if(strcmp(node->val.d[i].key, "gui")){
+                    printf("gui\n");
+                }
 			}
 		}
 	}else{
