@@ -10,13 +10,13 @@ void printBen(char *filename) {
 	
 	//~ Some checks, should exclude most exceptions
 	if(!fp) {
-		printf("File pointer failure.");
-		exit(EXIT_FAILURE);
+		printf("File pointer failure at file %s.\n", filename);
+		return;
 	}
 	
 	if(stat(filename, &fileStats) != 0) {
-		printf("Failure.");
-		exit(EXIT_FAILURE);
+		printf("Failure reading file %s.\n", filename);
+		return;
 	}
 	
 	//~ Allocate memory to read the file into & read it
@@ -26,8 +26,8 @@ void printBen(char *filename) {
 	be_node *node = be_decoden(contents, fileStats.st_size);
 	if(node) {
 		if(node->type != BE_DICT) {
-			printf("Invalid format.\n");
-			exit(EXIT_FAILURE);
+			printf("Invalid format in file %s.\n", filename);
+			return;
 		}else{
 			int i;
 			
@@ -67,7 +67,7 @@ void printBen(char *filename) {
 			}
 		}
 	}else{
-		printf("Not yay\n");
+		printf("Not yay at file %s.\n", filename);
 	}
 }
 
@@ -79,8 +79,9 @@ int main(int argc, char **argv) {
 	}
 	
 	for(; i < argc; i++) {
-		printf("Converting file %s to custom format.\n\n", argv[i]);
+		printf("Converting file %s to custom format.\n", argv[i]);
 		printBen(argv[i]);
+		printf("\n");
 	}
 	
 	return 0;
