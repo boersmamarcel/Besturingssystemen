@@ -16,7 +16,7 @@ Basic program logic;
 	-> use that number to get data from the node tree when asked for
 	
 	Errors;
-	- data is transfered in one big blob when asked for
+	- copying data with strcpy to the output data (read hook)
 	- unmounting is "difficult"
 */
 
@@ -60,7 +60,7 @@ static void my_init_hook(void) {
 			int i;
 			int j;
        
-		       struct inode *parentDirectory;
+		       struct inode *parentDirectory = NULL;
 
 			//Walk through the properties of the dict to find the title of the rss feed
 			for (i = 0; node->val.d[i].val; ++i) {
@@ -82,7 +82,7 @@ static void my_init_hook(void) {
 					}
 					else {
 						printf("Error; title name to long (%s)", title);
-						exit(EXIT_FAILURE);
+						//exit(EXIT_FAILURE);
 					}
 				}
 			}
@@ -130,15 +130,10 @@ static int my_read_hook(struct inode *inode, off_t offset, char **ptr, size_t *l
 	static char data[2000];
 	char *str;
 	int j;
-
-	/* We have only a single file. With more files, cbdata may help
-	* distinguishing between them.
-	*/
-	//assert((int) cbdata == 1);
-
 	be_node *node = read_file_with_root_node();
-	char *name;
-	char *descr;
+	char *name = NULL;
+	char *descr = NULL;
+	
 	for(j = 0; node->val.d[(int) cbdata].val->val.d[j].val; ++j) {
 		//~ The dictionary we're currently exploring
 		be_dict currDict = node->val.d[(int)cbdata].val->val.d[j];
@@ -150,11 +145,16 @@ static int my_read_hook(struct inode *inode, off_t offset, char **ptr, size_t *l
 		}
 	}
 	
-	sprintf(str, "%s\n%s", name, descr);
+	printf("Name; %s\nDescr; %s", name, descr);
 	
-	printf("String contents; %s", str);
+	
+	//~ There is an error in the line just below me.... The bottom of the two does work!
+	//sprintf(data, "%s%s", name, name);
+	sprintf(data, "This is file %i", ((int) cbdata));
+	
+	printf("String contents; %s\n", data);
 
-	strcpy(data, str);
+	//strcpy(data, str);
 
 	/* If the offset is beyond the end of the string, return EOF. */
 	if (offset > strlen(data)) {
