@@ -19,7 +19,9 @@ Basic program logic;
 	- copying data with strcpy to the output data (read hook)
 	- unmounting is "difficult"
 */
-
+/*
+Reads a b-encoded file (/file.ben), and returns a node object representing the data.
+*/
 static be_node* read_file_with_root_node() {
 	// Lees het benfile in
 	char *filename = "/file.ben";
@@ -56,7 +58,6 @@ static void my_init_hook(void) {
 			printf("Invalid format.");
 			exit(EXIT_FAILURE);
 		} else {
-			printf("wazoookie");
 			int i;
 			int j;
        
@@ -82,7 +83,6 @@ static void my_init_hook(void) {
 					}
 					else {
 						printf("Error; title name to long (%s)", title);
-						//exit(EXIT_FAILURE);
 					}
 				}
 			}
@@ -121,13 +121,18 @@ static void my_init_hook(void) {
 	}else{
 		printf("Not yay\n");
 	}
+			
+	be_free(node);
+	
+	printf("Finished creating filesystem.\n\n");
 }
 
 static int my_read_hook(struct inode *inode, off_t offset, char **ptr, size_t *len, cbdata_t cbdata) {
 	/* This hook will be called every time a regular file is read. We use
 	* it to dyanmically generate the contents of our file.
 	*/
-	static char data[2000];
+	static char data[1000];
+	static char data2[1000];
 	char *str;
 	int j;
 	be_node *node = read_file_with_root_node();
@@ -145,14 +150,15 @@ static int my_read_hook(struct inode *inode, off_t offset, char **ptr, size_t *l
 		}
 	}
 	
-	printf("Name; %s\nDescr; %s", name, descr);
-	
+	//~ Clean up resources
+	be_free(node);
 	
 	//~ There is an error in the line just below me.... The bottom of the two does work!
-	//sprintf(data, "%s%s", name, name);
-	sprintf(data, "This is file %i", ((int) cbdata));
+	sprintf(data, "%s\n\n\n", descr);
+	//sprintf(data2, "%s%s", name, descr);
+	//sprintf(data, "This is file %i", ((int) cbdata));
 	
-	printf("String contents; %s\n", data);
+	printf("String contents; %s\n", data2);
 
 	//strcpy(data, str);
 
