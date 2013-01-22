@@ -1,0 +1,2 @@
+    install  /sbin/testfs
+none is read-write mounted on /media/

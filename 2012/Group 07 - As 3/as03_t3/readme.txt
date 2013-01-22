@@ -17,6 +17,10 @@ add the following line above "service rs":
 Step 3:
 Reboot
 
+Step 3b:
+Make sure file.ben is in the root folder (as it is hard-linked in the code)
+	cp ./file.ben /
+
 Step 4:
 Mount the filesystem:
 
