@@ -13,7 +13,6 @@
 * This function creates a top-level directory, and then calls start_vtreefs() to add the new nodes.
 */
 int main(int argv, char* argc[]) {
-	printf("blaat\n");
 	
 	struct inode_stat root_stat;
 

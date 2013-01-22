@@ -10,7 +10,7 @@
 
 typedef struct
 {
-    char* date;
+    char date[9];
     struct inode* node;
 } dateNode;
 
@@ -61,14 +61,21 @@ static be_node* read_file_with_root_node() {
 	return node;
 }
 
-static inode lookupDateStringInDateArray(char* dateString, struct inode* parentDirectory) {
+static struct inode* lookupDateStringInDateArray(char* dateString, struct inode* parentDirectory) {
+    printf("\tLookup date string in date array for string: %s \n",dateString);
     struct inode *dateDirectoryInode = NULL;
-    for (int i =0; i < MAX_INODES; i++) {
-        if (strcmp(dateNodeArray[i].date,dateString)) {
+    int i;
+    for (i =0; i < lastDateNodeIndex; i++) {
+    	printf("\t\t Comparing [%s] with [%s]\n",dateNodeArray[i].date,dateString);
+        if (strcmp(dateNodeArray[i].date,dateString) == 0) {
             // DateDirectory already exists, return it
-            return dateDirectoryInode = dateNodeArray[i].node;
+
+    		printf("Found it for : %s \n",dateString);
+            dateDirectoryInode = dateNodeArray[i].node;
+            return dateDirectoryInode;
         }
     }
+	printf("\tDidn't found it for : %s \n",dateString);
     struct inode_stat dir_stat;
     dir_stat.mode = S_IFDIR | 0444;
     dir_stat.uid = 0; //User id (owner)
@@ -77,18 +84,18 @@ static inode lookupDateStringInDateArray(char* dateString, struct inode* parentD
     dir_stat.dev = NO_DEV; //devise number
     
     //Create the inode for this date directory
-    printf("About to add a folder with name %s\n", dateString);
+    printf("\t*About to add a folder with name %s\n", dateString);
     dateDirectoryInode = add_inode(parentDirectory, dateString, NO_INDEX, &dir_stat, 0, (cbdata_t) 1);
     
     // Construct the dateNode for this inode.
     dateNode dateDirectoryNode;
-    dateDirectoryNode.date = dateString;
+    strcpy(dateDirectoryNode.date,dateString);
     dateDirectoryNode.node = dateDirectoryInode;
     
     //Add the date directory to the dateNodeArray;
-    dateNodeArray[lastDateNodeIndex] = dateDirectoryStruct;
+    dateNodeArray[lastDateNodeIndex] = dateDirectoryNode;
     lastDateNodeIndex++;
-    return dateDirectory;
+    return dateDirectoryInode;
 }
 
 static void my_init_hook(void) {
@@ -103,8 +110,9 @@ static void my_init_hook(void) {
 			int i;
 			int j;
        
-		       struct inode *parentDirectory = NULL;
+		     struct inode *parentDirectory = NULL;
 
+			printf("Starting with the feed...\n");
 			//Walk through the properties of the dict to find the title of the rss feed
 			for (i = 0; node->val.d[i].val; ++i) {
 				if(strcmp(node->val.d[i].key, "title") == 0) { //We've landed on the title, use it
@@ -137,7 +145,7 @@ static void my_init_hook(void) {
 			for (i = 0; node->val.d[i].val; ++i) {
 				if(strncmp(node->val.d[i].key, "item", 4) == 0){
                     //Placeholders for the attributes of the item
-                    char title [PNAME_MAX];
+                    char itemTitle [PNAME_MAX];
                     char dateString [9];
 
 					for(j = 0; node->val.d[i].val->val.d[j].val; ++j) {
@@ -146,14 +154,16 @@ static void my_init_hook(void) {
                         
 						if(strcmp(currDict.key, "title") == 0){
                             // Copy the title to the title placeholder, with a max length of PNAME_MAX
-                            strncpy(title, currDict.val->val.s, (PNAME_MAX-1));
+                            strncpy(itemTitle, currDict.val->val.s, (PNAME_MAX-1));
                             //~ Add a terminating character
-                            title[PNAME_MAX -1] = '\0';
-						} else if(strcmp(currDict.key, "date") == 0){ //CHECK IF DATE IS RIGHT
-							// Copy the title to the title placeholder, with a max length of PNAME_MAX
-                            strncpy(date, currDict.val->val.s + 7, 8); //van pos 8 tot pos 15
+                            itemTitle[PNAME_MAX -1] = '\0';
+                            printf("Found a itemTitle: %s\n", itemTitle);
+						} else if(strcmp(currDict.key, "pubDate") == 0){ //CHECK IF DATE IS RIGHT
+							printf("Gotta parse that date: %s\n", currDict.val->val.s);
+							// Copy the itemTitle to the itemTitle placeholder, with a max length of PNAME_MAX
+                            strncpy(dateString, currDict.val->val.s + 8, 8); //van pos 8 tot pos 15
                             //~ Add a terminating character
-                            date[8] = '\0';
+                            dateString[8] = '\0';
 						}
 					}
                     
@@ -173,12 +183,12 @@ static void my_init_hook(void) {
                     dateDirectory = lookupDateStringInDateArray(dateString,parentDirectory);
                     
                     //Create the file (TODO: PLACE)
-                    add_inode(dateDirectory, title, NO_INDEX, &file_stat, 0, (cbdata_t) i);
+                    add_inode(dateDirectory, itemTitle, NO_INDEX, &file_stat, 0, (cbdata_t) i);
 				}
 			}
 		}
 	}else{
-		printf("Not yay... Node object was null\n");
+		printf("Node object was null\n");
 	}
 			
 	be_free(node);
