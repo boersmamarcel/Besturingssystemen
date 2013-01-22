@@ -1,7 +1,7 @@
 For a (very long) sequence of a's as unencrypted input, the output becomes a repetition of:
 cpospjzlthmzycztjvdrwjimjdtfnbgtswtndpxlqdcgdxnzhvanmqnhxjrfkxwaxrhtbpuhgkhbrdlzerqurlbnvjobaebvlxftylkolfvhpdivuyvpfrznsfeifzpbjx
 
-Which hints at a 130 character cypher.
+Which hints at a 130 character cypher (see http://jsfiddle.net/damnyankee/Zxyvp/ for the rather hacky script we used to detect repetition)
 
 We also noticed that a long series of b's gives the exact same output as a's + 1. This hints at a relatively simple Caesar code, because (apparently) there is no further shifting.
 
@@ -22,7 +22,7 @@ Furthermore, we noticed that the input strings
 aaaaaaaaaaaaaaaaaaaaaaaa
 a!@#$%^&*()123456789aaaa
 
-Result in the same output, except for the non-alphabetic characters.
+Result in the same output, except for the non-alphabetic characters (non-alphabetic characters are not touched, but are still counted).
 
 Thus, the used algorithm used to encode is (in JavaScript):
 	/*	Encodes/decodes the input string with the cypher.
@@ -63,17 +63,18 @@ Using this script, we were able to reverse-engeneer the codes
  										(-Sneakers, 1992) 
 
 Scripts to decrypt and/or encrypt can be found in this folder. Using Node.js, they can be executed as following:
-damnyankee@Mint-Maya-Virtualbox ~ $ node Encrypt.js < testFile >encrypted
-and
-damnyankee@Mint-Maya-Virtualbox ~ $ node Decrypt.js < encrypted >decrypted
+	damnyankee@Mint-Maya-Virtualbox ~ $ node Encrypt.js < testFile >encrypted
+	and
+	damnyankee@Mint-Maya-Virtualbox ~ $ node Decrypt.js < encrypted >decrypted
 
 Example output would be;
-damnyankee@Mint-Maya-Virtualbox ~ $ node Encrypt.js < testFile >encrypted
-damnyankee@Mint-Maya-Virtualbox ~ $ node Decrypt.js < encrypted >decrypted
-damnyankee@Mint-Maya-Virtualbox ~ $ diff testFile decrypted 
-1c1
-< Hello World!
----
-> hello world!
-damnyankee@Mint-Maya-Virtualbox ~ $ 
+	damnyankee@Mint-Maya-Virtualbox ~ $ node Encrypt.js < testFile >encrypted
+	damnyankee@Mint-Maya-Virtualbox ~ $ node Decrypt.js < encrypted >decrypted
+	damnyankee@Mint-Maya-Virtualbox ~ $ diff testFile decrypted 
+	1c1
+	< Hello World!
+	---
+	> hello world!
+	damnyankee@Mint-Maya-Virtualbox ~ $ 
 
+**Being real h4ckz0rs, we didn't feel restricted to C... real hackers use what they feel most comfortable with :)**
