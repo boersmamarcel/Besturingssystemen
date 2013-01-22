@@ -16,9 +16,9 @@ Basic program logic;
 	-> use that number to get data from the node tree when asked for
 	
 	Errors;
-	- copying data with strcpy to the output data (read hook)
 	- unmounting is "difficult"
 */
+
 /*
 Reads a b-encoded file (/file.ben), and returns a node object representing the data.
 */
@@ -108,18 +108,23 @@ static void my_init_hook(void) {
 							file_stat.size = 0; //Size of the file
 							file_stat.dev = NO_DEV; //devise number
 							
-							char buffer [PNAME_MAX];
-							strncpy (buffer, currDict.val->val.s, (PNAME_MAX-1) );
-							buffer[PNAME_MAX-1] = '\0';
-						    
-							add_inode(parentDirectory, buffer, NO_INDEX, &file_stat, 0, (cbdata_t) i);
+							if(strlen(currDict.val->val.s) >= PNAME_MAX) { // Make this string a little shorter
+								char buffer [PNAME_MAX];
+								strncpy(buffer, currDict.val->val.s, (PNAME_MAX-1));
+								//~ Add a terminating character
+								buffer[PNAME_MAX -1] = '\0';
+								add_inode(parentDirectory, buffer, NO_INDEX, &file_stat, 0, (cbdata_t) i);
+							}
+							else { //~ No need to make it shorter
+								add_inode(parentDirectory, currDict.val->val.s, NO_INDEX, &file_stat, 0, (cbdata_t) i);
+							}
 						}
 					}
 				}
 			}
 		}
 	}else{
-		printf("Not yay\n");
+		printf("Not yay... Node object was null\n");
 	}
 			
 	be_free(node);
@@ -132,11 +137,10 @@ static int my_read_hook(struct inode *inode, off_t offset, char **ptr, size_t *l
 	* it to dyanmically generate the contents of our file.
 	*/
 	static char data[1000];
-	static char data2[1000];
-	char *str;
 	int j;
 	be_node *node = read_file_with_root_node();
 	char *name = NULL;
+	char *date = NULL;
 	char *descr = NULL;
 	
 	for(j = 0; node->val.d[(int) cbdata].val->val.d[j].val; ++j) {
@@ -145,6 +149,8 @@ static int my_read_hook(struct inode *inode, off_t offset, char **ptr, size_t *l
 
 		if(strcmp(currDict.key, "title") == 0){
 			name = currDict.val->val.s;
+		}else if(strcmp(currDict.key, "pubDate") == 0) {
+			date = currDict.val->val.s;
 		}else if(strcmp(currDict.key, "description") == 0){
 			descr = currDict.val->val.s;
 		}
@@ -153,14 +159,11 @@ static int my_read_hook(struct inode *inode, off_t offset, char **ptr, size_t *l
 	//~ Clean up resources
 	be_free(node);
 	
-	//~ There is an error in the line just below me.... The bottom of the two does work!
-	sprintf(data, "%s\n\n\n", descr);
-	//sprintf(data2, "%s%s", name, descr);
-	//sprintf(data, "This is file %i", ((int) cbdata));
+	//~ Create the file contents & put them in the *static* char* data
+	//~ (notice the markdown style of making something a title...
+	sprintf(data, "##%s\n#####%s\n%s\n\n\n", name, date, descr);
 	
-	printf("String contents; %s\n", data2);
-
-	//strcpy(data, str);
+	printf("String contents; %s\n", data);
 
 	/* If the offset is beyond the end of the string, return EOF. */
 	if (offset > strlen(data)) {
