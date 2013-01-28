@@ -48,4 +48,24 @@ script 2:
 	(hier komt ook al een waarschuwing van bij het compileren mbv cc)
 	
 script 3:
-	
+	onveilige code:
+		int main( int ac, char** av )
+		{
+		    int numBytes = atoi( av[1] );
+		    if( numBytes > 100 )
+		        return -1;
+
+		    int* something = (int*)malloc( numBytes );
+		}
+	verbeterde versie:
+	  int main( int ac, char** av )
+    {
+        char *end;
+        long value = strtol(av[1], &end, 10);
+        if (end == number || *end != '\0' || errno == ERANGE || value > 100)
+            return -1;
+        int* something = (int*)malloc( (int)value );
+    }
+
+    Het gedrag van atoi als het meegegeven getal groter is dan de maximale waarde van int is niet gedefineerd. Het is hierdoor gevoelig voor overflow. strtol heeft dit probleem niet en checkt onderandere op niet volledig ingelezen strings, overflow en meer. (bron: http://stackoverflow.com/a/3421555)
+    
