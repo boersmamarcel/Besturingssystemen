@@ -1,0 +1,5 @@
+Om een assignment te beginnen dient de docent (met root/sudo rechten) het bestand init.sh uit te voeren.
+
+We hebben gekozen voor een versie waarbij geen argumenten worden gebruikt, maar het systeem een "dialoog" heeft met de gebruiker. Dit zorgt (volgens ons) voor een veel betere gebruikerservaring, met betere feedback en een makkelijke mogelijkheid om studenten toe te voegen.
+
+Bij het script "deadline.sh" wordt de input gegenereerd door init.sh, dus daar hebben we minder moeite gestoken in de input checks.

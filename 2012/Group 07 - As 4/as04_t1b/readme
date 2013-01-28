@@ -1,0 +1,5 @@
+De eerste opdracht lijkt goed te werken, en volgt de standaard linux permissies goed. We zien dus ook geen problemen die ACL aan moet pakken.
+
+Desondanks werkt deze versie met ACL, en dat lijkt helemaal goed te gaan.
+
+Bij het script "deadline.sh" wordt de input gegenereerd door init.sh, dus daar hebben we minder moeite gestoken in de input checks.
